@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resident Evil 9 — Requiem</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blood: #8B0000;
+    --blood-bright: #CC0000;
+    --bone: #E8DCC8;
+    --ash: #1A1410;
+    --ember: #FF4500;
+    --rust: #5C2B0A;
+    --fog: #2A2018;
+    --pale: #C4A882;
+    --mold: #2D3A1E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: #0A0806;
+    color: var(--bone);
+    font-family: 'Cormorant Garamond', serif;
+    overflow-x: hidden;
+  }
+
+  /* CURSOR */
+  body { cursor: crosshair; }
+  a, button { cursor: crosshair; }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 60%, #1A0A06 0%, #0A0806 70%);
+  }
+
+  .hero-bg-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,0,0,0.15) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: breathe 4s ease-in-out infinite;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  }
+
+  .umbrella-symbol {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    opacity: 0.3;
+    animation: rotate-slow 30s linear infinite;
+  }
+
+  @keyframes rotate-slow {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to { transform: translateX(-50%) rotate(360deg); }
+  }
+
+  .re-number {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 8px;
+    color: var(--blood-bright);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: flicker 6s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 96%, 100% { opacity: 1; }
+    97% { opacity: 0.2; }
+    98% { opacity: 1; }
+    99% { opacity: 0.4; }
+  }
+
+  .hero-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(48px, 10vw, 110px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 0.9;
+    text-align: center;
+    color: var(--bone);
+    text-shadow:
+      0 0 80px rgba(139,0,0,0.8),
+      0 0 160px rgba(139,0,0,0.3);
+    animation: title-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes title-in {
+    from { opacity: 0; transform: translateY(40px) scale(0.95); filter: blur(8px); }
+    to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  }
+
+  .hero-subtitle {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(14px, 3vw, 22px);
+    font-weight: 400;
+    letter-spacing: 12px;
+    color: var(--blood-bright);
+    margin-top: 16px;
+    text-transform: uppercase;
+    animation: title-in 1.4s 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(14px, 2vw, 18px);
+    font-weight: 300;
+    color: var(--pale);
+    margin-top: 40px;
+    letter-spacing: 2px;
+    opacity: 0.8;
+    animation: title-in 1.4s 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: title-in 2s 1.2s both;
+  }
+
+  .scroll-cue span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--blood);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(to bottom, var(--blood), transparent);
+    animation: scroll-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scroll-pulse {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    50.01% { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  /* BLOOD DRIP DIVIDER */
+  .drip-divider {
+    width: 100%;
+    height: 60px;
+    position: relative;
+    overflow: visible;
+  }
+
+  /* LORE SECTION */
+  .lore {
+    padding: 100px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--blood), transparent);
+  }
+
+  .lore h2 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 700;
+    color: var(--bone);
+    line-height: 1.1;
+    margin-bottom: 40px;
+  }
+
+  .lore h2 em {
+    color: var(--blood-bright);
+    font-style: normal;
+  }
+
+  .lore p {
+    font-size: clamp(16px, 2vw, 20px);
+    font-weight: 300;
+    line-height: 1.9;
+    color: var(--pale);
+    margin-bottom: 24px;
+  }
+
+  .lore blockquote {
+    border-left: 2px solid var(--blood);
+    padding: 20px 32px;
+    margin: 48px 0;
+    background: rgba(139,0,0,0.05);
+  }
+
+  .lore blockquote p {
+    font-style: italic;
+    font-size: clamp(18px, 2.5vw, 24px);
+    color: var(--bone);
+    margin: 0;
+  }
+
+  /* FEATURES GRID */
+  .features {
+    padding: 80px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2px;
+    background: var(--blood);
+    border: 1px solid var(--blood);
+    margin-top: 60px;
+  }
+
+  .feature-card {
+    background: #0D0906;
+    padding: 48px 36px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s ease;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--blood);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+  }
+
+  .feature-card:hover { background: #120A07; }
+  .feature-card:hover::before { transform: scaleX(1); }
+
+  .feature-number {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--blood);
+    margin-bottom: 24px;
+  }
+
+  .feature-card h3 {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--bone);
+    margin-bottom: 16px;
+    line-height: 1.3;
+  }
+
+  .feature-card p {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--pale);
+    line-height: 1.8;
+  }
+
+  /* VIRUS CODEX */
+  .codex {
+    padding: 100px 40px;
+    background: linear-gradient(to bottom, transparent, rgba(45,58,30,0.15), transparent);
+    position: relative;
+  }
+
+  .codex-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .virus-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 2px;
+    background: rgba(139,0,0,0.2);
+    border: 1px solid rgba(139,0,0,0.3);
+    margin-top: 60px;
+  }
+
+  @media (max-width: 640px) { .virus-row { grid-template-columns: 1fr; } }
+
+  .virus-entry {
+    padding: 40px 32px;
+    background: #0A0806;
+    position: relative;
+  }
+
+  .virus-entry::after {
+    content: attr(data-danger);
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 4px 10px;
+    background: rgba(139,0,0,0.2);
+    border: 1px solid rgba(139,0,0,0.4);
+    color: var(--blood-bright);
+  }
+
+  .virus-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--bone);
+    margin-bottom: 8px;
+  }
+
+  .virus-class {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--blood);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .virus-desc {
+    font-size: 14px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--pale);
+    line-height: 1.8;
+  }
+
+  .danger-bar {
+    margin-top: 24px;
+    height: 3px;
+    background: rgba(139,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .danger-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--blood), var(--blood-bright));
+    animation: fill-bar 2s 1s ease-out both;
+  }
+
+  @keyframes fill-bar {
+    from { width: 0; }
+  }
+
+  /* COUNTDOWN / TERMINAL */
+  .terminal-section {
+    padding: 80px 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .terminal-box {
+    background: #060402;
+    border: 1px solid rgba(139,0,0,0.4);
+    padding: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .terminal-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(139,0,0,0.015) 2px,
+      rgba(139,0,0,0.015) 4px
+    );
+    pointer-events: none;
+  }
+
+  .terminal-header {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--blood);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .terminal-header::before,
+  .terminal-header::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--blood);
+    animation: blink 2s infinite;
+  }
+
+  .terminal-header::after { animation-delay: 1s; }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+  .countdown {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin: 32px 0;
+  }
+
+  .countdown-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .countdown-number {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(36px, 8vw, 72px);
+    font-weight: 900;
+    color: var(--blood-bright);
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(204,0,0,0.5);
+  }
+
+  .countdown-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--pale);
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .terminal-line {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--mold);
+    margin-top: 32px;
+    color: rgba(139,0,0,0.5);
+    letter-spacing: 2px;
+    border-top: 1px solid rgba(139,0,0,0.15);
+    padding-top: 24px;
+    line-height: 2;
+    text-align: left;
+  }
+
+  .cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--blood-bright);
+    animation: blink 1s infinite;
+    vertical-align: middle;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 60px 40px;
+    text-align: center;
+    border-top: 1px solid rgba(139,0,0,0.2);
+    position: relative;
+  }
+
+  footer::before {
+    content: 'S.T.A.R.S.  ·  BSAA  ·  TRICELL  ·  CONNECTIONS  ·  UMBRELLA  ·  BLUE UMBRELLA  ·  THE FAMILY  ·  THE CONNECTIONS  ·  MARHAWA  ·  N.E.O.S.';
+    display: block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: rgba(139,0,0,0.3);
+    margin-bottom: 32px;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: marquee 30s linear infinite;
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(100%); }
+    to { transform: translateX(-100%); }
+  }
+
+  footer p {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(200,168,130,0.3);
+    text-transform: uppercase;
+  }
+
+  /* PARALLAX SCANLINES */
+  .scanlines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+  }
+
+  /* CORNER BRACKETS */
+  .hero-bracket {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    opacity: 0.4;
+  }
+  .hero-bracket.tl { top: 80px; left: 60px; border-top: 1px solid var(--blood); border-left: 1px solid var(--blood); }
+  .hero-bracket.tr { top: 80px; right: 60px; border-top: 1px solid var(--blood); border-right: 1px solid var(--blood); }
+  .hero-bracket.bl { bottom: 80px; left: 60px; border-bottom: 1px solid var(--blood); border-left: 1px solid var(--blood); }
+  .hero-bracket.br { bottom: 80px; right: 60px; border-bottom: 1px solid var(--blood); border-right: 1px solid var(--blood); }
+
+  /* VIGNETTE */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+  }
+
+  .hero-content { position: relative; z-index: 2; text-align: center; padding: 0 20px; }
+</style>
+</head>
+<body>
+
+<div class="scanlines"></div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-glow"></div>
+
+  <!-- Umbrella SVG -->
+  <svg class="umbrella-symbol" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="48" stroke="#8B0000" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="32" stroke="#8B0000" stroke-width="1"/>
+    <line x1="50" y1="2" x2="50" y2="98" stroke="#8B0000" stroke-width="1"/>
+    <line x1="2" y1="50" x2="98" y2="50" stroke="#8B0000" stroke-width="1"/>
+  </svg>
+
+  <div class="hero-bracket tl"></div>
+  <div class="hero-bracket tr"></div>
+  <div class="hero-bracket bl"></div>
+  <div class="hero-bracket br"></div>
+
+  <div class="hero-content">
+    <p class="re-number">Biohazard IX — Classified</p>
+    <h1 class="hero-title">RESIDENT<br>EVIL</h1>
+    <h2 class="hero-subtitle">Requiem</h2>
+    <p class="hero-tagline">"Every sin demands a reckoning. The final virus has no cure."</p>
+  </div>
+
+  <div class="scroll-cue">
+    <span>Descend</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- LORE -->
+<section class="lore">
+  <p class="section-label">Chapter I — Origins</p>
+  <h2>The world forgot.<br>The <em>virus</em> did not.</h2>
+  <p>
+    Twenty-six years have passed since Raccoon City was erased from the map. The T-Virus incident became legend, then folklore, then a conspiracy theory whispered on dark web forums. The survivors aged. The agencies crumbled. The world decided it had survived.
+  </p>
+  <p>
+    It was wrong.
+  </p>
+  <blockquote>
+    <p>"We didn't destroy Umbrella. We scattered it. And something in the dark has been patiently gathering the pieces."</p>
+  </blockquote>
+  <p>
+    Deep beneath the ruins of Eastern Europe, a successor organization — known only as <strong>REQUIEM</strong> — has spent two decades perfecting what Spencer began. Their weapon is not a virus. It is an <em>ending</em>. Airborne. Adaptive. Unstoppable without the singular key that one woman carries unknowingly in her blood.
+  </p>
+  <p>
+    Her name is Zara Solano. She has never heard of Raccoon City. She is about to become its last chapter.
+  </p>
+</section>
+
+<!-- FEATURES GRID -->
+<section class="features">
+  <p class="section-label">Chapter II — Systems</p>
+  <h2 style="font-family: 'Cinzel Decorative', serif; font-size: clamp(28px,5vw,52px); color: var(--bone);">What hunts you</h2>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <p class="feature-number">SYS — 01</p>
+      <h3>Adaptive Horror Engine</h3>
+      <p>The new A.I. director reads your heartbeat through controller input. The longer you survive, the smarter the creature becomes. There are no scripted scares. Only learning ones.</p>
+    </div>
+    <div class="feature-card">
+      <p class="feature-number">SYS — 02</p>
+      <h3>Reactive World Mutation</h3>
+      <p>The environments breathe. Fungal networks spread through walls as you explore, sealing paths and opening others. The village that welcomed you will not let you leave.</p>
+    </div>
+    <div class="feature-card">
+      <p class="feature-number">SYS — 03</p>
+      <h3>Dual-Soul Narrative</h3>
+      <p>Play as both the hunted and the infected. Experience the same catastrophe from opposite sides of the mutation — human instinct vs. viral consciousness.</p>
+    </div>
+    <div class="feature-card">
+      <p class="feature-number">SYS — 04</p>
+      <h3>Persistent Infection System</h3>
+      <p>Wounds don't just drain health. They spread. A bite left untreated mutates your character over hours of gameplay, altering abilities, dialogue, and available endings.</p>
+    </div>
+    <div class="feature-card">
+      <p class="feature-number">SYS — 05</p>
+      <h3>Ancient Architecture</h3>
+      <p>A collapsed Soviet facility built atop something far older. Two civilisations of horror interlocked in stone and steel. Map your descent. Know that not all levels lead back up.</p>
+    </div>
+    <div class="feature-card">
+      <p class="feature-number">SYS — 06</p>
+      <h3>The Resonance</h3>
+      <p>A 3D audio system so precise you can hear an infected creature's breathing pattern change through walls. Silence is information. Silence is survival.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIRUS CODEX -->
+<section class="codex">
+  <div class="codex-inner">
+    <p class="section-label">Chapter III — Biohazard Registry</p>
+    <h2 style="font-family: 'Cinzel Decorative', serif; font-size: clamp(28px,5vw,52px); color: var(--bone);">Known strains</h2>
+
+    <div class="virus-row">
+      <div class="virus-entry" data-danger="LEVEL — IV">
+        <p class="virus-name">Ω-Strain</p>
+        <p class="virus-class">Class: Engineered / Airborne</p>
+        <p class="virus-desc">The primary weapon of REQUIEM. Recombinant DNA derived from T, G, and Mold. No host rejection. Near-perfect lethality. Theoretical antigen identified in subject S-9.</p>
+        <div class="danger-bar"><div class="danger-fill" style="width:95%"></div></div>
+      </div>
+      <div class="virus-entry" data-danger="LEVEL — III">
+        <p class="virus-name">Vetiver</p>
+        <p class="virus-class">Class: Fungal / Symbiotic</p>
+        <p class="virus-desc">A self-aware mycological network stretching 40 km beneath the facility. Individual infected act as nerve endings for a singular, ancient intelligence below.</p>
+        <div class="danger-bar"><div class="danger-fill" style="width:78%"></div></div>
+      </div>
+      <div class="virus-entry" data-danger="LEVEL — V">
+        <p class="virus-name">Requiem-X</p>
+        <p class="virus-class">Class: Unknown / Classified</p>
+        <p class="virus-desc">Existence unconfirmed. Three separate BSAA operatives reported a creature of impossible scale in sub-level 9. All three failed to return from their second deployment.</p>
+        <div class="danger-bar"><div class="danger-fill" style="width:100%"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINAL / LAUNCH -->
+<section class="terminal-section">
+  <p class="section-label" style="justify-content:center; max-width:600px; margin:0 auto 0;">Umbrella Terminal — REDACTED</p>
+  <div class="terminal-box">
+    <p class="terminal-header">BIOHAZARD — CLASSIFIED</p>
+
+    <div class="countdown" id="countdown">
+      <div class="countdown-unit">
+        <span class="countdown-number" id="cd-days">000</span>
+        <span class="countdown-label">Days</span>
+      </div>
+      <div class="countdown-unit">
+        <span class="countdown-number" id="cd-hours">00</span>
+        <span class="countdown-label">Hours</span>
+      </div>
+      <div class="countdown-unit">
+        <span class="countdown-number" id="cd-mins">00</span>
+        <span class="countdown-label">Minutes</span>
+      </div>
+      <div class="countdown-unit">
+        <span class="countdown-number" id="cd-secs">00</span>
+        <span class="countdown-label">Seconds</span>
+      </div>
+    </div>
+
+    <div class="terminal-line">
+      > UMBRELLA CORP INTERNAL NETWORK v9.1.1<br>
+      > ACCESSING FILE: REQUIEM_PROTOCOL.EXE ...<br>
+      > AUTHORIZATION: ██████████████████<br>
+      > STATUS: DEPLOYMENT — IMMINENT<br>
+      > ANTIGEN HOST LOCATED — TRACKING ACTIVE<br>
+      > NOTE: ALL PRIOR INCIDENTS WERE REHEARSALS.<br>
+      > <span class="cursor-blink"></span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Resident Evil IX — Requiem &nbsp;·&nbsp; Capcom 2025 &nbsp;·&nbsp; Fan Concept &nbsp;·&nbsp; All things die. Not all things stay dead.</p>
+</footer>
+
+<script>
+  // COUNTDOWN to fictional launch: Jan 24, 2026
+  function updateCountdown() {
+    const target = new Date('2026-01-24T00:00:00');
+    const now = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      document.getElementById('cd-days').textContent = '000';
+      document.getElementById('cd-hours').textContent = '00';
+      document.getElementById('cd-mins').textContent = '00';
+      document.getElementById('cd-secs').textContent = '00';
+      return;
+    }
+
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById('cd-days').textContent = String(days).padStart(3,'0');
+    document.getElementById('cd-hours').textContent = String(hours).padStart(2,'0');
+    document.getElementById('cd-mins').textContent = String(mins).padStart(2,'0');
+    document.getElementById('cd-secs').textContent = String(secs).padStart(2,'0');
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // INTERSECTION OBSERVER for fade-in
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.feature-card, .virus-entry, .lore p, .lore blockquote').forEach(el => {
+    el.style.cssText += 'opacity:0; transform:translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease;';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
